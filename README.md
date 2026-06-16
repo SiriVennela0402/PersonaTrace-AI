@@ -47,37 +47,6 @@ Reasons:
 - MoviePy
 - Librosa
 
-## 7-Day Build Plan
-
-### Day 1
-
-1. Finalize project idea, problem statement, feature list, and expected output.
-2. Create the project structure and basic video upload UI.
-
-### Day 2
-
-1. Extract frames from uploaded video.
-2. Display basic video metadata and sampled frames.
-
-### Day 3
-
-1. Add face detection.
-2. Track face consistency across sampled frames.
-
-### Day 4
-
-1. Add blink and facial movement analysis.
-2. Detect frozen or unnatural face behavior.
-
-### Day 5
-
-1. Extract audio from video.
-2. Compare speech activity with mouth movement for lip-sync mismatch.
-
-### Day 6
-
-1. Add video quality checks.
-2. Combine all signals into a risk scoring system.
 
 ### Day 7
 
