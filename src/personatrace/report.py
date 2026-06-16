@@ -32,9 +32,8 @@ def build_placeholder_report(video_path: Path | None) -> RiskReport:
         risk_level="Initial Scan Pending",
         reasons=[
             "Video accepted for analysis",
-            "Frame extraction will be added on Day 2",
-            "Risk score is currently a placeholder",
+            "Frame extraction and metadata scan completed",
+            "Risk score is still a placeholder until detection modules are added",
         ],
         planned_modules=planned_modules,
     )
-
