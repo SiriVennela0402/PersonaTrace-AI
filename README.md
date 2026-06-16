@@ -48,8 +48,4 @@ Reasons:
 - Librosa
 
 
-### Day 7
-
-1. Build the final results page.
-2. Polish the UI, test sample videos, and prepare resume/GitHub documentation.
 
