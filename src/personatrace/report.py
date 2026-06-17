@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from src.personatrace.face_analysis import FaceConsistencyResult
+
 
 @dataclass(frozen=True)
 class RiskReport:
@@ -10,7 +12,10 @@ class RiskReport:
     planned_modules: list[str]
 
 
-def build_placeholder_report(video_path: Path | None) -> RiskReport:
+def build_placeholder_report(
+    video_path: Path | None,
+    face_result: FaceConsistencyResult | None = None,
+) -> RiskReport:
     planned_modules = [
         "Face consistency tracking",
         "Lip-sync mismatch detection",
@@ -24,6 +29,19 @@ def build_placeholder_report(video_path: Path | None) -> RiskReport:
             risk_score=0,
             risk_level="Waiting for video",
             reasons=["No interview video uploaded yet"],
+            planned_modules=planned_modules,
+        )
+
+    if face_result is not None:
+        return RiskReport(
+            risk_score=face_result.risk_score,
+            risk_level=face_result.risk_level,
+            reasons=[
+                "Frame extraction and metadata scan completed",
+                "Face consistency scan completed",
+                *face_result.reasons,
+                "Lip-sync and blink analysis are not added yet",
+            ],
             planned_modules=planned_modules,
         )
 
