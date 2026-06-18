@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from src.personatrace.behavior_analysis import BehaviorAnalysisResult
 from src.personatrace.face_analysis import FaceConsistencyResult
 
 
@@ -15,6 +16,7 @@ class RiskReport:
 def build_placeholder_report(
     video_path: Path | None,
     face_result: FaceConsistencyResult | None = None,
+    behavior_result: BehaviorAnalysisResult | None = None,
 ) -> RiskReport:
     planned_modules = [
         "Face consistency tracking",
@@ -33,14 +35,20 @@ def build_placeholder_report(
         )
 
     if face_result is not None:
+        behavior_reasons = behavior_result.reasons if behavior_result is not None else []
+        behavior_score = behavior_result.risk_score if behavior_result is not None else face_result.risk_score
+        combined_score = round((face_result.risk_score * 0.55) + (behavior_score * 0.45))
+
         return RiskReport(
-            risk_score=face_result.risk_score,
-            risk_level=face_result.risk_level,
+            risk_score=combined_score,
+            risk_level=_risk_level(combined_score),
             reasons=[
                 "Frame extraction and metadata scan completed",
                 "Face consistency scan completed",
+                "Blink and frozen face behavior scan completed",
                 *face_result.reasons,
-                "Lip-sync and blink analysis are not added yet",
+                *behavior_reasons,
+                "Lip-sync analysis is not added yet",
             ],
             planned_modules=planned_modules,
         )
@@ -55,3 +63,11 @@ def build_placeholder_report(
         ],
         planned_modules=planned_modules,
     )
+
+
+def _risk_level(risk_score: int) -> str:
+    if risk_score >= 70:
+        return "High"
+    if risk_score >= 40:
+        return "Medium"
+    return "Low"
