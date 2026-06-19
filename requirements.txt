@@ -1,5 +1,6 @@
 streamlit>=1.35.0
 opencv-python>=4.10.0
+imageio-ffmpeg>=0.6.0
 mediapipe>=0.10.30
 numpy>=2.0.0
 pandas>=2.2.0

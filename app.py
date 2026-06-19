@@ -5,8 +5,10 @@ import streamlit as st
 
 from src.personatrace.behavior_analysis import BehaviorAnalysisResult, analyze_behavior_patterns
 from src.personatrace.face_analysis import FaceConsistencyResult, analyze_face_consistency
+from src.personatrace.lip_sync_analysis import LipSyncAnalysisResult, analyze_lip_sync
 from src.personatrace.report import build_placeholder_report
 from src.personatrace.video_analysis import VideoAnalysisResult, analyze_video
+from src.personatrace.video_quality_analysis import VideoQualityResult, analyze_video_quality
 
 
 APP_TITLE = "PersonaTrace AI"
@@ -20,6 +22,8 @@ def initialize_state() -> None:
         "analysis": None,
         "face_result": None,
         "behavior_result": None,
+        "lip_sync_result": None,
+        "quality_result": None,
         "uploaded_name": None,
         "scan_error": None,
     }
@@ -496,6 +500,8 @@ def reset_scan() -> None:
     st.session_state.analysis = None
     st.session_state.face_result = None
     st.session_state.behavior_result = None
+    st.session_state.lip_sync_result = None
+    st.session_state.quality_result = None
     st.session_state.uploaded_name = None
     st.session_state.scan_error = None
     st.session_state.page = "upload"
@@ -608,6 +614,42 @@ def show_behavior_analysis(behavior_result: BehaviorAnalysisResult) -> None:
     st.markdown(f'<ul class="reason-list">{reason_items}</ul>', unsafe_allow_html=True)
 
 
+def show_lip_sync_analysis(lip_sync_result: LipSyncAnalysisResult) -> None:
+    st.markdown('<div class="section-kicker">Audio-Video Signal</div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title">Speech and Mouth Timing</div>', unsafe_allow_html=True)
+
+    lip_columns = st.columns(4)
+    lip_columns[0].metric("Audio", "Ready" if lip_sync_result.audio_available else "Missing")
+    lip_columns[1].metric("Speech Activity", f"{lip_sync_result.speech_activity_rate * 100:.0f}%")
+    lip_columns[2].metric("Mouth Activity", f"{lip_sync_result.mouth_activity_rate * 100:.0f}%")
+    lip_columns[3].metric("Lip-Sync Risk", f"{lip_sync_result.risk_score}%")
+
+    st.markdown(
+        f'<span class="status-pill">Lip-Sync Risk Level: {lip_sync_result.risk_level}</span>',
+        unsafe_allow_html=True,
+    )
+    reason_items = "".join(f"<li>{reason}</li>" for reason in lip_sync_result.reasons)
+    st.markdown(f'<ul class="reason-list">{reason_items}</ul>', unsafe_allow_html=True)
+
+
+def show_video_quality_analysis(quality_result: VideoQualityResult) -> None:
+    st.markdown('<div class="section-kicker">Quality Signal</div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title">Video Artifacts and Stability</div>', unsafe_allow_html=True)
+
+    quality_columns = st.columns(4)
+    quality_columns[0].metric("Frames Checked", quality_result.frames_checked)
+    quality_columns[1].metric("Sharpness", f"{quality_result.blur_score:.0f}")
+    quality_columns[2].metric("Lighting Var.", f"{quality_result.brightness_variation * 100:.0f}%")
+    quality_columns[3].metric("Quality Risk", f"{quality_result.risk_score}%")
+
+    st.markdown(
+        f'<span class="status-pill">Quality Risk Level: {quality_result.risk_level}</span>',
+        unsafe_allow_html=True,
+    )
+    reason_items = "".join(f"<li>{reason}</li>" for reason in quality_result.reasons)
+    st.markdown(f'<ul class="reason-list">{reason_items}</ul>', unsafe_allow_html=True)
+
+
 def show_intro_page() -> None:
     st.markdown(
         f"""
@@ -668,11 +710,15 @@ def show_upload_page() -> None:
             st.success("Evidence received. PersonaTrace AI is scanning sampled frames.")
             try:
                 analysis = analyze_video(video_path, sample_count=12)
+                quality_result = analyze_video_quality(analysis)
                 face_result = analyze_face_consistency(analysis.sampled_frames)
                 behavior_result = analyze_behavior_patterns(face_result)
+                lip_sync_result = analyze_lip_sync(video_path, face_result)
                 st.session_state.analysis = analysis
+                st.session_state.quality_result = quality_result
                 st.session_state.face_result = face_result
                 st.session_state.behavior_result = behavior_result
+                st.session_state.lip_sync_result = lip_sync_result
                 st.session_state.scan_error = None
                 if st.button("Open Investigation Report", use_container_width=True):
                     set_page("report")
@@ -714,6 +760,8 @@ def show_report_page() -> None:
     analysis = st.session_state.analysis
     face_result = st.session_state.face_result
     behavior_result = st.session_state.behavior_result
+    lip_sync_result = st.session_state.lip_sync_result
+    quality_result = st.session_state.quality_result
     video_path = st.session_state.video_path
 
     if analysis is None or video_path is None:
@@ -742,7 +790,7 @@ def show_report_page() -> None:
     with right:
         st.markdown('<div class="section-kicker">Threat Report</div>', unsafe_allow_html=True)
         st.markdown('<div class="panel-title">Interview Risk Score</div>', unsafe_allow_html=True)
-        report = build_placeholder_report(video_path, face_result, behavior_result)
+        report = build_placeholder_report(video_path, face_result, behavior_result, lip_sync_result, quality_result)
         score_class = risk_class(report.risk_level)
         st.markdown(
             f'<div class="risk-score {score_class}">{report.risk_score}%</div>',
@@ -768,10 +816,14 @@ def show_report_page() -> None:
     with left:
         show_video_metadata(analysis)
         show_sampled_frames(analysis)
+        if quality_result is not None:
+            show_video_quality_analysis(quality_result)
         if face_result is not None:
             show_face_consistency(face_result)
         if behavior_result is not None:
             show_behavior_analysis(behavior_result)
+        if lip_sync_result is not None:
+            show_lip_sync_analysis(lip_sync_result)
 
 
 def main() -> None:
