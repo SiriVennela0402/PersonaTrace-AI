@@ -737,9 +737,9 @@ def show_upload_page() -> None:
         st.markdown(
             """
             <ul class="reason-list">
-                <li>Step 1: Upload candidate interview clip</li>
-                <li>Step 2: Extract metadata and evidence frames</li>
-                <li>Step 3: Open face consistency report</li>
+                <li>Upload candidate interview clip</li>
+                <li>Extract metadata, frames, audio, and quality signals</li>
+                <li>Open trace analysis report</li>
             </ul>
             """,
             unsafe_allow_html=True,
@@ -777,8 +777,8 @@ def show_report_page() -> None:
             <div class="eyebrow">Trace Investigation</div>
             <h1 class="hero-title">Trace Analysis Report</h1>
             <p class="hero-subtitle">
-                PersonaTrace AI has extracted evidence frames and generated the current
-                face-consistency risk signal for this interview clip.
+                PersonaTrace AI has combined face consistency, behavior, audio-video timing,
+                and video artifact signals into an explainable interview risk score.
             </p>
         </section>
         """,
@@ -809,6 +809,16 @@ def show_report_page() -> None:
         st.markdown('<div class="panel-title" style="margin-top:18px;">Analysis Modules</div>', unsafe_allow_html=True)
         module_items = "".join(f'<div class="module-item">{module}</div>' for module in report.planned_modules)
         st.markdown(f'<div class="module-grid">{module_items}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="panel-title" style="margin-top:18px;">Decision Note</div>', unsafe_allow_html=True)
+        st.markdown(
+            """
+            <ul class="reason-list">
+                <li>This is a screening signal, not a final identity verdict.</li>
+                <li>High risk should trigger manual review and stronger verification.</li>
+            </ul>
+            """,
+            unsafe_allow_html=True,
+        )
         if st.button("Scan Another Clip", use_container_width=True):
             reset_scan()
             st.rerun()
